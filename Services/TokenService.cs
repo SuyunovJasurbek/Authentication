@@ -7,42 +7,39 @@ namespace jwt.Services;
 
 public class TokenService : ITokenService
 {
-    private readonly IConfiguration _configuration;
+    private readonly IConfiguration configuration;
 
     public TokenService(IConfiguration configuration )
     {
-        _configuration =configuration;
+        this.configuration =configuration;
     }
 
-
-    public string CreateAsync(Dictionary<string, string> claims)
+    public string Create(Dictionary<string, string> claims)
     {
         var jwtClaims = claims.Select(j=>new Claim(j.Key, j.Value));
 
-        var key = _configuration["Jwt:Key"] ?? throw new NullReferenceException(" nalibal bubb qoldi  key");
-        var issuer=_configuration["Jwt:Issuer"] ?? throw new NullReferenceException(" null bub qoldi issuer ");
-        var auidiense =_configuration["Jwt:Auidiense"] ?? throw new NullReferenceException(" null bub qoldi  Auidiense "); 
-         var keyx = _configuration["Jwt:Keyx"] ?? throw new NullReferenceException(" nalibal bubb qoldi  key");
+        var key = configuration["Jwt:Key"] ?? throw new NullReferenceException(" nalibal bubb qoldi  key");
+        var issuer=configuration["Jwt:Issuer"] ?? throw new NullReferenceException(" null bub qoldi issuer ");
+        var audience =configuration["Jwt:Audience"] ?? throw new NullReferenceException(" null bub qoldi  Auidiense "); 
 
         
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));        
-        var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.Aes128CbcHmacSha256);           
+        var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature);           
         var tokenDescriptor = new JwtSecurityToken(
             issuer,
-            auidiense,
+            audience,
             jwtClaims, 
-            expires: DateTime.Now.AddMinutes(1),
+            expires: DateTime.Now.AddMinutes(12),
             signingCredentials: credentials);        
         return new JwtSecurityTokenHandler().WriteToken(tokenDescriptor);
         
     }
 
 
-
-    public bool ValidateAsync(string token)
+    public bool Validate(string token)
     {
-        var key = _configuration["Jwt:Key"] ?? throw new NullReferenceException("JWT Key is null.");
-        var issuer = _configuration["Jwt:Issuer"] ?? throw new NullReferenceException("JWT Issuer is null.");
+        var key = configuration["Jwt:Key"] ?? throw new NullReferenceException("Key null bub qoldi .");
+        var issuer = configuration["Jwt:Issuer"] ?? throw new NullReferenceException("Issiur null bub qoldi .");
         var secret = Encoding.UTF8.GetBytes(key);           
         var securityKey = new SymmetricSecurityKey(secret);
         var tokenHandler = new JwtSecurityTokenHandler(); 
